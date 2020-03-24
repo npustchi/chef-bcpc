@@ -115,34 +115,50 @@ Vagrant.configure('2') do |config|
 
         # add additional hard drives
         if hw_profile.key?('ext_disks')
-
           size_gb = hw_profile['ext_disks']['size_gb']
-          count = hw_profile['ext_disks']['count']
-          drive_letters = ('a'..'z').to_a[1..count]
+          ext_count = hw_profile['ext_disks']['count']
+        else
+          ext_count = 0
+        end
+        if hw_profile.key?('raw_disks')
+          raw_count = hw_profile['raw_disks'].count
+        else
+          raw_count = 0
+        end
+        count = ext_count + raw_count
+        drive_letters = ('a'..'z').to_a[1..count]
 
-          drive_letters.each_with_index do |l, i|
-            drive_file = "sd#{l}.vdi"
-            drive_fp = File.join(vb_folder, project_name, vbox_vm_name, drive_file)
+        drive_letters.each_with_index do |l, i|
+          drive_file = "sd#{l}.vdi"
+          drive_fp = File.join(vb_folder, project_name, vbox_vm_name,
+            drive_file)
 
-            next if File.exist?(drive_fp)
+          next if File.exist?(drive_fp)
 
-            drive_port = i + 1
+          drive_port = i + 1
 
+          if i < ext_count
             vb.customize [
               'createhd',
               '--filename', drive_fp,
               '--size', size_gb * 1024
             ]
-
+          else
             vb.customize [
-              'storageattach', :id,
-              '--storagectl', 'SATA Controller',
-              '--type', 'hdd',
-              '--device', 0,
-              '--port', drive_port,
-              '--medium', drive_fp
+              'internalcommands', 'createrawvmdk',
+              '-filename', drive_fp,
+              '-rawdisk', hw_profile['raw_disks'][i - ext_count]
             ]
           end
+
+          vb.customize [
+            'storageattach', :id,
+            '--storagectl', 'SATA Controller',
+            '--type', 'hdd',
+            '--device', 0,
+            '--port', drive_port,
+            '--medium', drive_fp
+          ]
         end
       end
     end
