@@ -33,14 +33,13 @@ package %w(
   sysstat
   linux-tools-common
   sosreport
-  python-pip
-  python-memcache
-  python-mysqldb
-  python-six
-  python-ldap
-  python-configparser
+  python3-pip
+  python3-memcache
+  python3-mysqldb
+  python3-six
+  python3-ldap
   xinetd
-  python-openstackclient
+  python3-openstackclient
   jq
   tmux
   crudini

@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package 'python-futurist'
+package 'python3-futurist'
 
 target = node['bcpc']['etcd3gw']['remote_file']['file']
 save_path = "#{Chef::Config[:file_cache_path]}/#{target}"
@@ -32,6 +32,6 @@ bash 'install etcd3gw' do
   cwd Chef::Config[:file_cache_path]
   code <<-EOH
     tar -xzf #{target}
-    pip install $(basename #{target} .tar.gz)/
+    python3 -m pip install $(basename #{target} .tar.gz)/
   EOH
 end

@@ -24,7 +24,7 @@ package %w(
   apache2
   apache2-utils
   libapache2-mod-fcgid
-  libapache2-mod-wsgi
+  libapache2-mod-wsgi-py3
 )
 
 service 'apache2'

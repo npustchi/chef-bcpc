@@ -100,8 +100,26 @@ begin
 end
 
 # watcher packages installation and service definitions
-watcher_packages = %w(watcher-api watcher-decision-engine watcher-applier python-watcherclient)
+watcher_packages = %w(watcher-api watcher-decision-engine watcher-applier python3-watcherclient)
 package watcher_packages
+
+# /!\ horrible non-production quality hacks by self-acclaimed chef critic ahead! /!\
+# watcher is broken out of the gate on bionic/stein - this gets it spinning again...
+cookbook_file '/tmp/watcher_stein.patch' do
+  source 'watcher/stein.patch'
+end
+
+bash 'apply critical patch to stein/watcher' do
+  code <<-EOH
+    patch -d / -Np1 < /tmp/watcher_stein.patch || /bin/true
+    rm /tmp/watcher_stein.patch
+    rm /usr/lib/python3/dist-packages/watcher/cmd/__pycache__/__init__.cpython-36.pyc
+    rm /usr/lib/python3/dist-packages/watcher/common/__pycache__/service.cpython-36.pyc
+    py3compile -p python3-watcher
+    systemctl restart apache2 watcher-applier watcher-decision-engine || /bin/true
+  EOH
+end
+# /!\ back to your regularly scheduled programming quality /!\
 
 service 'watcher-decision-engine'
 

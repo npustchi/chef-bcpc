@@ -202,7 +202,7 @@ template '/etc/haproxy/haproxy.d/heat.cfg' do
 end
 
 # heat packages installation and service definitions
-heat_packages = %w(heat-api heat-api-cfn heat-engine python-heat-dashboard)
+heat_packages = %w(heat-api heat-api-cfn heat-engine python3-heat-dashboard)
 package heat_packages
 
 service 'heat-engine'

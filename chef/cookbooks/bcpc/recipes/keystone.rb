@@ -38,8 +38,8 @@ end
 # package installation and service definition starts
 package %w(
   keystone
-  python-ldap
-  python-ldappool
+  python3-ldap
+  python3-ldappool
 )
 
 service 'keystone' do

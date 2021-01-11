@@ -63,6 +63,8 @@ end
 package %w(
   pdns-server
   pdns-backend-mysql
+  python3-dnspython
+  python3-jinja2
 )
 service 'pdns'
 
