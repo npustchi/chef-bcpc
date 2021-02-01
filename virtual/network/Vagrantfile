@@ -15,9 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 require '../lib/util'
+require 'json'
 
-base_box = 'bento/ubuntu-18.04'
-base_box_version = '202005.21.0'
+config_variable_file = File.read('../packer/variables.json')
+config_variables = JSON.parse(config_variable_file)
+base_box = config_variables['output_packer_box_name']
+base_box_dir = "~/.vagrant.d/boxes/#{base_box}/0"
+unless (File.directory?(File.expand_path(base_box_dir)))
+  raise "Packer box #{base_box} not found. Please run 'make create-packer-box' from the Makefile directory to generate #{base_box} first."
+end
 
 def setup_proxy(node)
   http_proxy  = ENV['http_proxy']  || ''
@@ -62,7 +68,6 @@ Vagrant.configure(2) do |config|
       end
       node.vm.hostname = 'network'
       node.vm.box = base_box
-      config.vm.box_version = base_box_version
       node.vm.box_download_insecure = true
       Util.mount_apt_cache(node)
       node.vm.network('private_network',

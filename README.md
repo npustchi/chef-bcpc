@@ -24,6 +24,7 @@ machine for development and testing purposes.
 * 128 GB of free disk space
 * Vagrant 2.1+
 * VirtualBox 5.2+
+* Packer 1.4+
 * git, curl, rsync, ssh, jq, make, ansible
 
 **NOTE**: It is likely possible to build an environment with 16GB of RAM or less
@@ -36,6 +37,10 @@ to provide the best out-of-the-box experience.
 
 ### Local Build
 
+* Review `virtual/packer/variables.json` and set the variables (those with default value
+'null' are required). An exmaple can be found at [variables.json.example](virtual/packer/
+variables.json.example). This step issential for building a packer box as a base image
+and for building the virtual environment. 
 * Review `virtual/topology/topology.yml` for the topology you will build and
 make changes as required, e.g. assign more or less RAM based on your topology
 and your build environment. Other topologies exist in the same directory.
@@ -47,6 +52,15 @@ changes to them instead.
 * If a proxy server is required for internet access, set the variables TBD
 * If additional CA certificates are required (e.g. for a proxy), set the variables TBD
 * From the root of the chef-bcpc git repository run the following command:
+
+Download and install the latest version of Packer
+
+```shell
+wget https://releases.hashicorp.com/packer/1.6.6/packer_1.6.6_linux_amd64.zip -O ~/packer_1.6.6_linux.zip
+sudo apt install unzip
+sudo unzip ~/packer_1.6.6_linux.zip -d /usr/local/bin
+```
+
 
 Create a Python virtual environment (virtualenv) and activate it
 
@@ -60,6 +74,7 @@ To create a virtualbox build (the default):
 
 ```shell
 make generate-chef-databags
+make create-packer-box
 make create all
 ```
 
@@ -72,8 +87,16 @@ vagrant box add bento/ubuntu-18.04 --box-version 202005.21.0 --provider virtualb
 vagrant mutate bento/ubuntu-18.04 libvirt
 export VAGRANT_DEFAULT_PROVIDER=libvirt VAGRANT_VAGRANTFILE=Vagrantfile.libvirt
 make generate-chef-databags
+make create-packer-box
 make create all
 ```
+
+To clean up the build:
+```shell
+make destroy
+make destroy-packer-box # must run after 'make destroy'
+```
+
 
 You may also want to change cpu model from `qemu64` to `kvm64` in
 `ansible/playbooks/roles/common/defaults/main/chef.yml`
@@ -139,6 +162,7 @@ chef-bcpc is built with the following open source software:
  - [HAProxy](http://haproxy.1wt.eu/)
  - [Memcached](http://memcached.org)
  - [OpenStack](http://www.openstack.org/)
+ - [Packer](https://www.packer.io/)
  - [Percona XtraDB Cluster](http://www.percona.com/software/percona-xtradb-cluster)
  - [PowerDNS](https://www.powerdns.com/)
  - [RabbitMQ](http://www.rabbitmq.com/)

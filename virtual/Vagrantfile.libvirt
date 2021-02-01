@@ -16,9 +16,17 @@
 # limitations under the License.
 require 'yaml'
 require './lib/util'
+require 'json'
 
-base_box = 'bento/ubuntu-18.04'
-base_box_version = '202005.21.0'
+
+config_variable_file = File.read('./packer/variables.json')
+config_variables = JSON.parse(config_variable_file)
+base_box = config_variables['output_packer_box_name']
+base_box_dir = "~/.vagrant.d/boxes/#{base_box}/0"
+unless (File.directory?(File.expand_path(base_box_dir)))
+  raise "Packer box #{base_box} not found. Please run 'make create-packer-box' from the Makefile directory to generate #{base_box} first."
+end
+
 
 def load_topology
   # load the vm topology profile
@@ -55,7 +63,6 @@ hardware = load_hardware
 Vagrant.configure('2') do |config|
   config.ssh.forward_x11 = true
   config.vm.box = base_box
-  config.vm.box_version = base_box_version
   config.vm.box_download_insecure = true
 
   config.vm.provider :libvirt do |lv|

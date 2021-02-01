@@ -1,0 +1,9 @@
+{
+    "bcc_apt_key_url":"",
+    "bcc_apt_url":"",
+    "kernel_version":"",	
+    "base_box":null,
+    "base_box_version":null,
+    "base_box_provider":null,
+    "output_packer_box_name":null
+}

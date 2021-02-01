@@ -90,12 +90,7 @@ done
 
 function main {
     create_operations_user
-    configure_vagrant_user
-    configure_apt
-    upgrade_system
-    download_debs
     configure_swap
-    configure_linux_kernel
 }
 
 function create_operations_user {
@@ -107,49 +102,6 @@ function create_operations_user {
         echo "${operations_user} ALL = (ALL) NOPASSWD: ALL" > \
             "/etc/sudoers.d/${operations_user}"
     fi
-}
-
-function configure_vagrant_user {
-    group="operators"
-
-    # create the operators group
-    groupadd -f ${group}
-
-    # add the vagrant user to the operators group
-    usermod -a -G ${group} vagrant
-}
-
-function configure_apt {
-
-    if [ -n "$apt_key_url" ]; then
-        /usr/bin/wget -qO - "$apt_key_url" | /usr/bin/apt-key add -
-    fi
-
-    if [ -n "$apt_url" ]; then
-cat << EOF > /etc/apt/sources.list
-deb ${apt_url} bionic main restricted universe multiverse
-deb ${apt_url} bionic-backports main restricted universe multiverse
-deb ${apt_url} bionic-security main restricted universe multiverse
-deb ${apt_url} bionic-updates main restricted universe multiverse
-EOF
-    fi
-
-    apt-get update
-}
-
-# Taken from Ansible's dist upgrade logic for apt(8)
-function upgrade_system {
-    env DEBIAN_FRONTEND='noninteractive' DEBIAN_PRIORITY='critical' \
-        apt-get -y \
-            -o 'Dpkg::Options::=--force-confdef' \
-            -o 'Dpkg::Options::=--force-confold' \
-        dist-upgrade
-}
-
-function download_debs {
-    apt-get install --download-only -y -t bionic-backports \
-        bird2 init-system-helpers
-    apt-get install --download-only -y chrony tinyproxy unbound
 }
 
 function configure_swap {
@@ -170,23 +122,6 @@ function configure_swap {
             echo "${swap_file}  none  swap  sw 0  0" >> /etc/fstab
         fi
     fi
-}
-
-function configure_linux_kernel {
-    KERNEL_VERSION_FILE=/vagrant/kernel-version
-    if test -f "${KERNEL_VERSION_FILE}"; then
-        # shellcheck disable=SC1090
-        source "${KERNEL_VERSION_FILE}"
-        apt-get install -y "linux-${KERNEL_VERSION}"
-    fi
-
-    # Disable IPv6
-    eval "$(grep ^GRUB_CMDLINE_LINUX= /etc/default/grub)"
-    NEW_CMDLINE="${GRUB_CMDLINE_LINUX} ipv6.disable=1"
-    sed -i.orig \
-        "s/^[#]*GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX=\"${NEW_CMDLINE}\"/" \
-        /etc/default/grub
-    update-grub
 }
 
 main
