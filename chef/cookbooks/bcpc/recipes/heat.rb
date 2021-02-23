@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: heat
 #
-# Copyright:: 2019 Bloomberg Finance L.P.
+# Copyright:: 2020 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -198,7 +198,7 @@ template '/etc/haproxy/haproxy.d/heat.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy-heat]', :immediately
+  notifies :reload, 'service[haproxy-heat]', :immediately
 end
 
 # heat packages installation and service definitions
@@ -310,12 +310,17 @@ end
 
 template '/etc/heat/heat.conf' do
   source 'heat/heat.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'heat'
+
   variables(
     db: database,
     os: openstack,
     config: config,
     is_headnode: headnode?,
     headnodes: headnodes(all: true),
+    rmqnodes: rmqnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
   notifies :run, 'execute[heat-manage db_sync]', :immediately

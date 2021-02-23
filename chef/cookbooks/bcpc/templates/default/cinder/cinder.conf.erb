@@ -13,7 +13,7 @@ osapi_volume_workers = <%= node['bcpc']['cinder']['workers'] %>
 osapi_volume_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% end %>
 my_ip = <%= node['service_ip'] %>
-transport_url = rabbit://<%= @headnodes.map {|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
+transport_url = rabbit://<%= @rmqnodes.map {|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
 glance_api_servers = <%= "https://#{node['bcpc']['cloud']['fqdn']}:9292" %>
 glance_api_insecure = true
 enabled_backends = <%= @backends.map {|b| b['name']}.join(',') %>
@@ -22,6 +22,11 @@ enable_v3_api = true
 scheduler_default_filters = <%= @scheduler_default_filters.join(',') %>
 <% end %>
 
+<% if !node['bcpc']['cinder']['backend_native_threads_pool_size'].nil? %>
+[backend_defaults]
+backend_native_threads_pool_size = <%= node['bcpc']['cinder']['backend_native_threads_pool_size'] %>
+
+<% end %>
 [database]
 connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}/#{@db['dbname']}" %>
 max_overflow = <%= node['bcpc']['cinder']['database']['max_overflow'] %>

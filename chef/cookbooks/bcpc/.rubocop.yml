@@ -1,4 +1,4 @@
-ChefModernize/ExecuteSysctl:
+Style/RedundantBegin:
   Enabled: false
 
 Style/RedundantSelf:

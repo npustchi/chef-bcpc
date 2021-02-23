@@ -127,7 +127,7 @@ template '/etc/haproxy/haproxy.d/neutron.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy-neutron]', :immediately
+  notifies :reload, 'service[haproxy-neutron]', :immediately
 end
 
 # neutron package installation and service definition starts
@@ -198,11 +198,16 @@ end
 #
 template '/etc/neutron/neutron.conf' do
   source 'neutron/neutron.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'neutron'
+
   variables(
     db: database,
     os: openstack,
     config: config,
-    headnodes: headnodes(all: true)
+    headnodes: headnodes(all: true),
+    rmqnodes: rmqnodes(all: true)
   )
   notifies :restart, 'service[neutron-server]', :immediately
 end

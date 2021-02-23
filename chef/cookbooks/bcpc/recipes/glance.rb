@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: glance
 #
-# Copyright:: 2019 Bloomberg Finance L.P.
+# Copyright:: 2020 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -117,7 +117,7 @@ template '/etc/haproxy/haproxy.d/glance.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy-glance]', :immediately
+  notifies :reload, 'service[haproxy-glance]', :immediately
 end
 
 # glance package installation and service definition
@@ -223,11 +223,16 @@ end
 #
 template '/etc/glance/glance-api.conf' do
   source 'glance/glance-api.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'glance'
+
   variables(
     db: database,
     os: openstack,
     config: config,
-    headnodes: headnodes(all: true)
+    headnodes: headnodes(all: true),
+    rmqnodes: rmqnodes(all: true)
   )
   notifies :restart, 'service[glance-api]', :immediately
 end

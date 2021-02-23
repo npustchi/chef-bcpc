@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: keystone
 #
-# Copyright:: 2019 Bloomberg Finance L.P.
+# Copyright:: 2020 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ template '/etc/haproxy/haproxy.d/keystone.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy-keystone]', :immediately
+  notifies :reload, 'service[haproxy-keystone]', :immediately
 end
 
 # package installation and service definition starts
@@ -207,6 +207,9 @@ end
 # configure keystone service starts
 template '/etc/keystone/keystone.conf' do
   source 'keystone/keystone.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'keystone'
 
   variables(
     db: database,

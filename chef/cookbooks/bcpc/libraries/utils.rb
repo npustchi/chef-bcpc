@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Library:: utils
 #
-# Copyright:: 2019 Bloomberg Finance L.P.
+# Copyright:: 2020 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,6 +26,12 @@ def init_cloud?
   nodes.empty?
 end
 
+def init_rmq?
+  nodes = search(:node, 'roles:rmqnode')
+  nodes = nodes.reject { |n| n['hostname'] == node['hostname'] }
+  nodes.empty?
+end
+
 def bootstrap?
   search(:node, "role:bootstrap AND hostname:#{node['hostname']}").any?
 end
@@ -34,12 +40,20 @@ def headnode?
   search(:node, "role:headnode AND hostname:#{node['hostname']}").any?
 end
 
-def worknode?
-  search(:node, "role:worknode AND hostname:#{node['hostname']}").any?
+def rmqnode?
+  search(:node, "role:rmqnode AND hostname:#{node['hostname']}").any?
 end
 
 def storagenode?
   search(:node, "role:storagenode AND hostname:#{node['hostname']}").any?
+end
+
+def stubnode?
+  search(:node, "role:stubnode AND hostname:#{node['hostname']}").any?
+end
+
+def worknode?
+  search(:node, "role:worknode AND hostname:#{node['hostname']}").any?
 end
 
 def bootstraps
@@ -62,6 +76,21 @@ def headnodes(exclude: nil, all: false)
   nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
 end
 
+def rmqnodes(exclude: nil, all: false)
+  nodes = []
+
+  if !exclude.nil?
+    nodes = search(:node, 'roles:rmqnode')
+    nodes = nodes.reject { |h| h['hostname'] == exclude }
+  elsif all == true
+    nodes = search(:node, 'role:rmqnode')
+  else
+    nodes = search(:node, 'roles:rmqnode')
+  end
+
+  nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
+end
+
 def worknodes(all: false)
   nodes = if all
             search(:node, 'role:worknode')
@@ -75,6 +104,13 @@ end
 def all_nodes
   nodes = search(:node, '*:*')
   nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
+end
+
+def node_roles
+  matches = search(:node, "hostname:#{node['hostname']}")
+  raise "the node '#{node['hostname']}' does not exist or has "\
+    'multiple matches' if matches.length != 1
+  matches[0]['roles']
 end
 
 def generate_service_catalog_uri(svcprops, access_level)

@@ -2,7 +2,7 @@
 # Cookbook:: bcpc
 # Recipe:: getty
 #
-# Copyright:: 2019 Bloomberg Finance L.P.
+# Copyright:: 2020 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,6 @@
 
 node['bcpc']['getty']['ttys'].each do |ttyname|
   systemd_unit "getty@#{ttyname}.service" do
-    action %i(enable start)
+    action %i(disable stop)
   end
 end

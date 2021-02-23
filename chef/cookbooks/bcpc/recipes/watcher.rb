@@ -128,6 +128,10 @@ watcher_processes = if !node['bcpc']['watcher']['api_workers'].nil?
 # configure watcher-api service
 template '/etc/apache2/sites-available/watcher-api.conf' do
   source 'watcher/watcher-api.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'watcher'
+
   variables(
     processes: watcher_processes
   )
@@ -174,12 +178,17 @@ end
 
 template '/etc/watcher/watcher.conf' do
   source 'watcher/watcher.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'watcher'
+
   variables(
     db: database,
     os: openstack,
     config: config,
     is_headnode: headnode?,
     headnodes: headnodes(all: true),
+    rmqnodes: rmqnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
   notifies :run, 'execute[watcher-manage db_sync]', :immediately
@@ -200,7 +209,7 @@ template '/etc/haproxy/haproxy.d/watcher.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy-watcher]', :immediately
+  notifies :reload, 'service[haproxy-watcher]', :immediately
 end
 
 execute 'wait for watcher api to become available' do

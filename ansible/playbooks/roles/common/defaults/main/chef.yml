@@ -42,6 +42,13 @@ chef_environment:
 ###############################################################################
 
 chef_roles:
+  - name: stubnode
+    description: cloud infrastructure foundational role
+    json_class: Chef::Role
+    chef_type: role
+    run_list:
+      - role[node]
+
   - name: bootstrap
     description: bootstrap node
     json_class: Chef::Role
@@ -52,8 +59,6 @@ chef_roles:
       - recipe[bcpc::ufw]
       - recipe[bcpc::rally]
       - recipe[bcpc::rally-deploy]
-      - recipe[bcpc::etcd-proxy]
-      - recipe[bcpc::calico-felix]
 
   - name: headnode
     description: cloud infrastructure services
@@ -63,8 +68,6 @@ chef_roles:
       - role[node]
       - recipe[bcpc::haproxy]
       - recipe[bcpc::etcd-member]
-      - recipe[bcpc::calico-felix]
-      - recipe[bcpc::rabbitmq]
       - recipe[bcpc::memcached]
       - recipe[bcpc::unbound]
       - recipe[bcpc::consul]
@@ -84,6 +87,14 @@ chef_roles:
       - recipe[bcpc::flavors]
       - recipe[bcpc::watcher]
 
+  - name: rmqnode
+    description: cloud infrastructure MQ services
+    json_class: Chef::Role
+    chef_type: role
+    run_list:
+      - role[node]
+      - recipe[bcpc::rabbitmq]
+
   - name: node
     description: common role for all bcpc nodes
     json_class: Chef::Role
@@ -99,6 +110,8 @@ chef_roles:
       - recipe[bcpc::cpupower]
       - recipe[bcpc::getty]
       - recipe[bcpc::hwrng]
+      - recipe[bcpc::etcd-proxy]
+      - recipe[bcpc::calico-felix]
 
   - name: storagenode
     description: storage node
@@ -106,8 +119,6 @@ chef_roles:
     chef_type: role
     run_list:
       - role[node]
-      - recipe[bcpc::etcd-proxy]
-      - recipe[bcpc::calico-felix]
       - recipe[bcpc::ceph-osd]
 
   - name: worknode
@@ -116,8 +127,6 @@ chef_roles:
     chef_type: role
     run_list:
       - role[node]
-      - recipe[bcpc::etcd-proxy]
-      - recipe[bcpc::calico-felix]
       - recipe[bcpc::calico-work]
       - recipe[bcpc::nova-compute]
 

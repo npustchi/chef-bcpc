@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: haproxy
 #
-# Copyright:: 2019 Bloomberg Finance L.P.
+# Copyright:: 2020 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -65,7 +65,22 @@ template '/etc/haproxy/haproxy.cfg' do
   variables(
     user: config['haproxy'],
     headnodes: headnodes(all: true),
+    rmqnodes: rmqnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy]', :immediately
+  notifies :reload, 'service[haproxy]', :immediately
+end
+
+template '/etc/haproxy/errors/429.http' do
+  source 'haproxy/429.http.erb'
+  notifies :reload, 'service[haproxy]', :immediately
+end
+
+directory '/etc/haproxy/acls' do
+  action :create
+end
+
+template '/etc/haproxy/acls/qos-exempt.acl' do
+  source 'haproxy/qos-exempt.acl.erb'
+  notifies :reload, 'service[haproxy]', :immediately
 end

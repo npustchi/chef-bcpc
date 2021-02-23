@@ -182,10 +182,15 @@ end
 
 template '/etc/nova/nova.conf' do
   source 'nova/nova.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'nova'
+
   variables(
     db: database,
     config: config,
     headnodes: headnodes,
+    rmqnodes: rmqnodes,
     vip: node['bcpc']['cloud']['vip']
   )
   notifies :restart, 'service[nova-compute]', :immediately
@@ -194,6 +199,9 @@ end
 
 template '/etc/nova/nova-compute.conf' do
   source 'nova/nova-compute.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'nova'
 
   variables(
     virt_type: node['cpu']['0']['flags'].include?('vmx') ? 'kvm' : 'qemu',

@@ -15,9 +15,6 @@ work node runs the relevant services (nova-compute, Ceph OSDs, etc.).
 The following instructions will get chef-bcpc up and running on your local
 machine for development and testing purposes.
 
-See the [Hardware Deployment][Hardware Deployment] section for notes on how to
-deploy the chef-bcpc on hardware.
-
 
 ### Prerequisites
 
@@ -69,10 +66,12 @@ make create all
 To create a libvirt build:
 
 ```shell
+sudo apt-get install build-essential libvirt-dev qemu-utils
 vagrant plugin install vagrant-libvirt vagrant-mutate
-vagrant box add bento/ubuntu-18.04
+vagrant box add bento/ubuntu-18.04 --box-version 202005.21.0 --provider virtualbox
 vagrant mutate bento/ubuntu-18.04 libvirt
-export VAGRANT_DEFAULT_PROVIDER=libvirt
+export VAGRANT_DEFAULT_PROVIDER=libvirt VAGRANT_VAGRANTFILE=Vagrantfile.libvirt
+make generate-chef-databags
 make create all
 ```
 
@@ -90,6 +89,21 @@ chef_environment:
            cpu_model: kvm64
 ```
 
+To revert to the default virtualbox provider, as far as the build is
+concerned, you can just remove the mutated libvirt box and then unset
+VAGRANT_DEFAULT_PROVIDER and VAGRANT_VAGRANTFILE environment
+variables. However since you must also make sure that the different
+hypervisors don't both try to control the CPU virtualisation
+facilities, it is best to remove the mutated box and then simply
+reboot your development host (assuming no scripts reset the VAGRANT
+variables).
+
+This would look something like this:
+
+```shell
+$ rm -rf ~/.vagrant.d/boxes/bento-VAGRANTSLASH-ubuntu-18.04/202005.21.0/libvirt/
+$ sudo reboot
+```
 
 ## Hardware Deployment
 

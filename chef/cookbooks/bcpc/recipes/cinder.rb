@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: cinder
 #
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2021 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -117,7 +117,7 @@ template '/etc/haproxy/haproxy.d/cinder.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy-cinder]', :immediately
+  notifies :reload, 'service[haproxy-cinder]', :immediately
 end
 
 # cinder package installation and service definition
@@ -248,6 +248,10 @@ cinder_processes = if !node['bcpc']['cinder']['workers'].nil?
 
 template '/etc/apache2/sites-available/cinder-api.conf' do
   source 'cinder/cinder-api.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'cinder'
+
   variables(
     processes: cinder_processes
   )
@@ -262,8 +266,8 @@ end
 
 template '/etc/cinder/cinder.conf' do
   source 'cinder/cinder.conf.erb'
-  mode '600'
-  owner 'cinder'
+  mode '0640'
+  owner 'root'
   group 'cinder'
 
   variables(
@@ -271,6 +275,7 @@ template '/etc/cinder/cinder.conf' do
     backends: cinder_config.backends,
     config: config,
     headnodes: headnodes(all: true),
+    rmqnodes: rmqnodes(all: true),
     scheduler_default_filters: cinder_config.filters
   )
 
@@ -295,9 +300,17 @@ if zone_config.enabled?
       fi
 
       if ! grep AccessFilter ${entry_points_txt}; then
+
+        # update entry points file using crudini
         crudini --set ${entry_points_txt} cinder.scheduler.filters \
           AccessFilter cinder.scheduler.filters.access_filter:AccessFilter
+
+        # sleep for a brief moment before restarting cinder-scheduler
+        sleep 10
+
+        # restart cinder-scheduler
         systemctl restart cinder-scheduler
+
       fi
     EOH
   end
@@ -347,8 +360,9 @@ cinder_config.backends.each do |backend|
   end
 end
 
-service 'cinder-volume' do
-  action :start
+execute 'make sure cinder-volume comes up' do
+  action :nothing
   retries 30
+  command 'systemctl start cinder-volume'
   not_if 'systemctl status cinder-volume'
 end

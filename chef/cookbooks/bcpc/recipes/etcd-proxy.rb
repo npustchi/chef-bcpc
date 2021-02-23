@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: etcd-proxy
 #
-# Copyright:: 2019 Bloomberg Finance L.P.
+# Copyright:: 2020 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@
 
 include_recipe 'bcpc::etcd-packages'
 include_recipe 'bcpc::etcd-ssl'
+
+# Headnodes have etcd-member and don't need etcd-proxy.
+return if headnode?
 
 service 'etcd'
 

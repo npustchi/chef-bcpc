@@ -203,7 +203,7 @@ template '/etc/haproxy/haproxy.d/nova.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy-nova]', :immediately
+  notifies :reload, 'service[haproxy-nova]', :immediately
 end
 
 # nova package installation and service definition
@@ -343,6 +343,9 @@ end
 # configure nova starts
 template '/etc/nova/nova.conf' do
   source 'nova/nova.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'nova'
 
   variables(
     db: database,
@@ -350,6 +353,7 @@ template '/etc/nova/nova.conf' do
     config: config,
     is_headnode: headnode?,
     headnodes: headnodes(all: true),
+    rmqnodes: rmqnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
 
@@ -382,6 +386,10 @@ placement_processes = if !node['bcpc']['placement']['workers'].nil?
 
 template '/etc/apache2/sites-available/nova-placement-api.conf' do
   source 'nova/nova-placement-api.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'nova'
+
   variables(
     processes: placement_processes
   )
